@@ -64,13 +64,13 @@ Changelog
 """
 
 setup(
-    name='blitzdb',
-    version='0.4.4',
+    name='blitzdb3-ce',
+    version='4.0.0',
     author='Andreas Dewes - 7scientists',
     author_email='andreas@7scientists.com',
     license='MIT',
     entry_points={},
-    url='https://github.com/adewes/blitzdb',
+    url='https://github.com/marcinguy/blitzdb3-ce',
     packages=find_packages(),
     install_requires=['six'],
     zip_safe=False,
