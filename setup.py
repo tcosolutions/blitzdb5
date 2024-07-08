@@ -91,7 +91,7 @@ setup(
     author_email='andreas@7scientists.com',
     license='MIT',
     entry_points={},
-    url='https://github.com/marcinguy/blitzdb3-ce',
+    url='https://github.com/tcosolutions/blitzdb3-ce',
     packages=find_packages(),
     install_requires=['six'],
     zip_safe=False,
