@@ -29,7 +29,7 @@ classifiers = [
 dependencies = [
   "six"
 ]
-urls = { "Homepage" = "git@github.com:tcosolutions/blitzdb3-ce.git" }
+urls = { "Homepage" = "https://github.com/tcosolutions/blitzdb3-ce" }
 
 [tool.setuptools]
 packages = ["find:"]
