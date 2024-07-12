@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "blitzdb3-ce"
+version = "4.0.0"
+description = "A document-oriented database written purely in Python."
+readme = "README.md"
+license = { text = "MIT" }
+authors = [
+  { name = "Andreas Dewes", email = "andreas@7scientists.com" },
+  { name = "Abilian SAS" },
+  { name = "Marcin Kozlowski" }
+]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.6",
+  "Programming Language :: Python :: 3.7",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Topic :: Database"
+]
+dependencies = [
+  "six"
+]
+urls = { "Homepage" = "git@github.com:tcosolutions/blitzdb3-ce.git" }
+
+[tool.setuptools]
+packages = ["find:"]
+zip_safe = false
+
