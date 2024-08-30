@@ -90,7 +90,7 @@ Changelog
 
 setup(
     name='blitzdb3-ce',
-    version='4.0.2',
+    version='4.0.3',
     author='Andreas Dewes - 7scientists',
     author_email='andreas@7scientists.com',
     license='MIT',
