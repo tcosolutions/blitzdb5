@@ -4,15 +4,10 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "blitzdb3-ce"
-version = "4.0.3"
+version = "4.0.4"
 description = "A document-oriented database written purely in Python."
 readme = "README.md"
 license = { text = "MIT" }
-authors = [
-  { name = "Andreas Dewes", email = "andreas@7scientists.com" },
-  { name = "Abilian SAS" },
-  { name = "Marcin Kozlowski" }
-]
 classifiers = [
   "Intended Audience :: Developers",
   "Programming Language :: Python",
