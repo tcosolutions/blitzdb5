@@ -19,7 +19,6 @@ classifiers = [
   "Topic :: Database"
 ]
 dependencies = [
-  "six"
 ]
 
 
