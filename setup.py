@@ -96,10 +96,10 @@ setup(
     license='MIT',
     url='https://github.com/tcosolutions/blitzdb3-ce',
     packages=find_packages(),
-    install_requires=['six'],
+    install_requires=[],
     zip_safe=False,
     description='A document-oriented database written purely in Python.',
     long_description=LONG_DESCRIPTION,
-    long_description_content_type='text/markdown',  # Specifies the format of the long description
+    long_description_content_type='text/markdown', 
 )
 
