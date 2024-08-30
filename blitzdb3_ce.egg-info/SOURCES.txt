@@ -44,5 +44,4 @@ blitzdb3_ce.egg-info/PKG-INFO
 blitzdb3_ce.egg-info/SOURCES.txt
 blitzdb3_ce.egg-info/dependency_links.txt
 blitzdb3_ce.egg-info/not-zip-safe
-blitzdb3_ce.egg-info/requires.txt
 blitzdb3_ce.egg-info/top_level.txt
