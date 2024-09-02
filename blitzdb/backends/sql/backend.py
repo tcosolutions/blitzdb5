@@ -1991,3 +1991,47 @@ class Backend(BaseBackend):
             include=include,
             havings=havings,
         )
+
+from sqlalchemy import create_engine, MetaData
+from sqlalchemy.orm import sessionmaker, scoped_session
+from contextlib import contextmanager
+
+class SQLBackend:
+    def __init__(self, database_url):
+        self.engine = create_engine(database_url)
+        self.Session = scoped_session(sessionmaker(bind=self.engine))
+        self.metadata = MetaData(bind=self.engine)
+
+    def create_tables(self):
+        self.metadata.create_all(self.engine)
+
+    def drop_tables(self):
+        self.metadata.drop_all(self.engine)
+
+    @contextmanager
+    def transaction(self):
+        session = self.Session()
+        try:
+            yield session
+            session.commit()
+        except Exception:
+            session.rollback()
+            raise
+        finally:
+            session.close()
+
+    def add(self, obj):
+        with self.transaction() as session:
+            session.add(obj)
+
+    def delete(self, obj):
+        with self.transaction() as session:
+            session.delete(obj)
+
+    def query(self, *args, **kwargs):
+        with self.transaction() as session:
+            return session.query(*args, **kwargs).all()
+
+    def filter(self, model, *criterion):
+        with self.transaction() as session:
+            return session.query(model).filter(*criterion).all()
