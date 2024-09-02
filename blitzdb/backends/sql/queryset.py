@@ -530,7 +530,7 @@ class QuerySet(BaseQuerySet):
         if columns is None:
             columns = self.get_fields()
 
-        s = select(columns)
+        s = select(*columns)
 
         if self.joins:
             full_join = None
