@@ -45,7 +45,7 @@ Key Features
 
 setup(
     name='blitzdb3',
-    version='4.0.9',
+    version='4.0.10',
     license='MIT',
     url='https://github.com/tcosolutions/blitzdb3',
     packages=find_packages(),
