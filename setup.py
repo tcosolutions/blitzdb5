@@ -44,10 +44,10 @@ Key Features
 """
 
 setup(
-    name='blitzdb3-ce',
+    name='blitzdb3',
     version='4.0.9',
     license='MIT',
-    url='https://github.com/tcosolutions/blitzdb3-ce',
+    url='https://github.com/tcosolutions/blitzdb3',
     packages=find_packages(),
     install_requires=[],
     zip_safe=False,
