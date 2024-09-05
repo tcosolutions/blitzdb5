@@ -4,20 +4,10 @@ from contextlib import contextmanager
 import os
 
 class SQLBackend:
-    def __init__(self):
-        # Define the path to the .checkmate folder in the parent directory
-        parent_directory = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
-        checkmate_directory = os.path.join(parent_directory, '.checkmate')
-        
-        # Ensure the .checkmate directory exists
-        if not os.path.exists(checkmate_directory):
-            os.makedirs(checkmate_directory)
-
-        # Define the database URL
-        database_url = f'sqlite:///{os.path.join(checkmate_directory, "db.sqlite")}'
+    def __init__(self, engine):
         
         # Create the engine and bind the metadata
-        self.engine = create_engine(database_url)
+        self.engine = engine
         self.Session = scoped_session(sessionmaker(bind=self.engine))
         self.metadata = MetaData(bind=self.engine)
 
