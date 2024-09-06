@@ -40,11 +40,8 @@ blitzdb/fields/integer.py
 blitzdb/fields/manytomany.py
 blitzdb/fields/onetomany.py
 blitzdb/fields/text.py
-blitzdb3.egg-info/PKG-INFO
-blitzdb3.egg-info/SOURCES.txt
-blitzdb3.egg-info/dependency_links.txt
-blitzdb3.egg-info/not-zip-safe
-blitzdb3.egg-info/top_level.txt
-blitzdb3_ce.egg-info/SOURCES.txt
-blitzdb3_ce.egg-info/dependency_links.txt
-blitzdb3_ce.egg-info/top_level.txt
+blitzdb4.egg-info/PKG-INFO
+blitzdb4.egg-info/SOURCES.txt
+blitzdb4.egg-info/dependency_links.txt
+blitzdb4.egg-info/not-zip-safe
+blitzdb4.egg-info/top_level.txt

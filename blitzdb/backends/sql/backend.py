@@ -5,18 +5,20 @@ import os
 
 class SQLBackend:
     def __init__(self, engine):
-        
-        # Create the engine and bind the metadata
+        # Create the engine and session factory
         self.engine = engine
-        self.Session = scoped_session(sessionmaker(bind=self.engine))
-        self.metadata = MetaData(bind=self.engine)
+        self.Session = sessionmaker(bind=self.engine)  # No need for scoped_session if not threading
+        self.metadata = MetaData()
 
     def create_tables(self):
         """Create tables in the database."""
+        # Make sure tables are defined before calling create_all
+        # Example: self.metadata.create_all([Table definitions go here], bind=self.engine)
         self.metadata.create_all(self.engine)
 
     def drop_tables(self):
         """Drop all tables in the database."""
+        # Make sure tables are defined before calling drop_all
         self.metadata.drop_all(self.engine)
 
     @contextmanager
@@ -26,8 +28,9 @@ class SQLBackend:
         try:
             yield session
             session.commit()
-        except Exception:
+        except Exception as e:
             session.rollback()
+            print(f"Transaction failed: {e}")  # Optionally, add logging
             raise
         finally:
             session.close()
