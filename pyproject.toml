@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "blitzdb5"
-version = "4.0.14"
+version = "4.0.15"
 description = "A document-oriented database written purely in Python."
 readme = "README.md"
 license = { text = "MIT" }

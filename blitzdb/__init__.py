@@ -28,7 +28,7 @@ except ImportError:
     pass
 
 try:
-    from .backends.sql import Backend as SqlBackend
+    from .backends.sql import Backend as SQLBackend
 except ImportError:
     pass
 

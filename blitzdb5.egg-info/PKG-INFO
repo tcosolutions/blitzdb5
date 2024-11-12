@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: blitzdb5
-Version: 4.0.14
+Version: 4.0.15
 Summary: A document-oriented database written purely in Python.
 Home-page: https://github.com/tcosolutions/blitzdb3
 License: MIT
