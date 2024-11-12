@@ -32,6 +32,5 @@ try:
 except ImportError:
     pass
 
-__version__ = "0.2.12"
 
-from .backends.sql.backend import SQLBackend as SqlBackend
+from .backends.sql.backend import SQLBackend
