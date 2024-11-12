@@ -3,8 +3,8 @@ requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "blitzdb4"
-version = "4.0.12"
+name = "blitzdb5"
+version = "4.0.13"
 description = "A document-oriented database written purely in Python."
 readme = "README.md"
 license = { text = "MIT" }
