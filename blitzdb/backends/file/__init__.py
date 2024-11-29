@@ -19,7 +19,7 @@
 # IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-from .base import Backend
+from ..base import Backend
 from .index import Index, NonUnique, TransactionalIndex
 from .queryset import QuerySet
 from .store import Store, TransactionalStore
