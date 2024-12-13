@@ -18,7 +18,6 @@ dependencies = [
 
 dynamic = ["version"]
 [tool.setuptools_scm]
-write_to = "_version.py"
 local_scheme = "no-local-version"  # Removes the local version part (e.g., +g748e57a)
 version_scheme = "release-branch-semver"  # Ensures only the clean version is used
 
