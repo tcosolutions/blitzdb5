@@ -23,8 +23,7 @@ import datetime
 import orjson
 
 
-# Replace JSONEncoder logic with orjson functionality while keeping the name JSONEncoder
-class JSONEncoder:
+class JsonEncoder:
     @staticmethod
     def encode(obj):
         try:
