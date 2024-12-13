@@ -17,6 +17,6 @@ dependencies = [
 ]
 
 [tool.setuptools_scm]
-write_to = "/home/runner/work/blitzdb5/blitzdb/_version.py"
+write_to = "/home/runner/work/blitzdb5/_version.py"
 
 
