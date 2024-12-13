@@ -2,9 +2,8 @@ name: Publish Python Package
 
 on:
   push:
-    branches:
-      - main  # Replace with your default branch if different
-
+    tags:
+      - '*'
 jobs:
   publish:
     runs-on: ubuntu-latest
