@@ -2,9 +2,9 @@ name: Publish Python Package
 
 on:
   push:
-      tags:
-      - '*'  # Trigger on tags like v1.0.0
-
+    tags:
+      - '*'  # Match all tags
+      
 jobs:
   publish:
     runs-on: ubuntu-latest
