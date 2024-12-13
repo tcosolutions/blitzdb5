@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools", "wheel"]
+requires = ["setuptools", "setuptools_scm", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -15,5 +15,8 @@ classifiers = [
 dependencies = [
   "orjson"
 ]
+
+[tool.setuptools_scm]
+write_to = "blitzdb5/_version.py"
 
 
