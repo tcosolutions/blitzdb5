@@ -2,9 +2,9 @@ name: Publish Python Package
 
 on:
   push:
-    tags:
-      - '*'  # Match all tags
-      
+    branches:
+      - main  # Replace with your default branch if different
+
 jobs:
   publish:
     runs-on: ubuntu-latest
