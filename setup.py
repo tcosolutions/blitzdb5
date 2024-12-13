@@ -49,7 +49,7 @@ setup(
     license='MIT',
     url='https://github.com/tcosolutions/blitzdb3',
     packages=find_packages(),
-    install_requires=[],
+    install_requires=[orjson],
     zip_safe=False,
     description='A document-oriented database written purely in Python.',
     long_description=LONG_DESCRIPTION,
