@@ -13,6 +13,10 @@ jobs:
       # Step 1: Check out the repository
       - name: Check out code
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Fetch the full Git history including tags
+
+      
 
       # Step 2: Set up Python
       - name: Set up Python
