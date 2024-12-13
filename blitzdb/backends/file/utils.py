@@ -20,15 +20,21 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 import datetime
-import json
+import orjson
 
 
-class JsonEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, set):
-            return list(obj)
+# Replace JSONEncoder logic with orjson functionality while keeping the name JSONEncoder
+class JSONEncoder:
+    @staticmethod
+    def encode(obj):
+        try:
+            return orjson.dumps(obj).decode("utf-8")
+        except Exception as e:
+            raise TypeError(f"Object of type {type(obj).__name__} is not JSON serializable: {e}")
 
-        elif isinstance(obj, datetime.datetime):
-            return obj.ctime()
-
-        return json.JSONEncoder.default(self, obj)
+    @staticmethod
+    def decode(json_string):
+        try:
+            return orjson.loads(json_string)
+        except Exception as e:
+            raise ValueError(f"Invalid JSON string: {e}")
