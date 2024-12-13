@@ -1,10 +1,9 @@
-
 name: Publish Python Package
 
 on:
   push:
-    tags:
-      - 'v*'  # Trigger on tags like v1.0.0
+      tags:
+      - '*'  # Trigger on tags like v1.0.0
 
 jobs:
   publish:
