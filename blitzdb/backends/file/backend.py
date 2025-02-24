@@ -22,7 +22,9 @@
 import os
 import os.path
 import uuid
+import pickle
 from collections import defaultdict
+from typing import Any, Dict, List, Optional, Union
 
 import blitzdb
 from blitzdb.backends.base import Backend as BaseBackend
@@ -154,9 +156,20 @@ class Backend(BaseBackend):
 
     config_defaults = {}
 
-    def __init__(self, path, config=None, overwrite_config=False, **kwargs):
-
-        self._path = os.path.abspath(path)
+    def __init__(self, path: str, 
+                 serialize: str = 'json',
+                 transactional: bool = True,
+                 **kwargs):
+        super(Backend, self).__init__(**kwargs)
+        
+        self.path = os.path.abspath(path)
+        self.transactional = transactional
+        
+        # Optional new features
+        self._enable_batch_operations = kwargs.get('enable_batch_operations', False)
+        self._enable_caching = kwargs.get('enable_caching', False)
+        self._batch_size = kwargs.get('batch_size', 1000)
+        
         if not os.path.exists(path):
             os.makedirs(path)
 
@@ -165,11 +178,22 @@ class Backend(BaseBackend):
         self.in_transaction = False
         self.indexes = defaultdict(lambda: {})
         self.index_stores = defaultdict(lambda: {})
-        self.load_config(config, overwrite_config)
+        self.load_config(kwargs.get('config'), kwargs.get('overwrite_config'))
         self._auto_transaction = False
         self.begin()
 
-        super().__init__(**kwargs)
+        if serialize == 'pickle':
+            self.serialize = pickle.dumps
+            self.deserialize = pickle.loads
+        elif serialize == 'json':
+            self.serialize = JsonSerializer.serialize
+            self.deserialize = JsonSerializer.deserialize
+        else:
+            raise ValueError(f"Unknown serialization format: {serialize}")
+
+        # Initialize cache if enabled
+        if self._enable_caching:
+            self._cache_manager = self.CacheManager()
 
     @property
     def autocommit(self):
@@ -347,7 +371,7 @@ class Backend(BaseBackend):
         return self.indexes[collection][cls.get_pk_name()]
 
     def load_config(self, config=None, overwrite_config=False):
-        config_file = os.path.join(self._path, "config.json")
+        config_file = os.path.join(self.path, "config.json")
         if os.path.exists(config_file):
             with open(config_file, "rb") as config_file:
                 # configuration is always stored in JSON format
@@ -368,7 +392,7 @@ class Backend(BaseBackend):
         self.save_config()
 
     def save_config(self):
-        config_file = os.path.join(self._path, "config.json")
+        config_file = os.path.join(self.path, "config.json")
         with open(config_file, "wb") as config_file:
             config_file.write(JsonSerializer.serialize(self._config))
 
@@ -409,14 +433,10 @@ class Backend(BaseBackend):
         if super().register(cls, parameters):
             self.init_indexes(self.get_collection_for_cls(cls))
 
-    def get_storage_key_for(self, obj):
-        collection = self.get_collection_for_obj(obj)
-        pk_index = self.get_pk_index(collection)
-        try:
-            return pk_index.get_keys_for(obj.pk)[0]
-
-        except (KeyError, IndexError):
-            raise obj.DoesNotExist
+    def get_storage_key_for(self, obj_or_cls):
+        if isinstance(obj_or_cls, type):
+            return self.get_collection_for_cls(obj_or_cls)
+        return self.get_collection_for_cls(obj_or_cls.__class__)
 
     def init_indexes(self, collection):
         cls = self.collections[collection]
@@ -732,3 +752,20 @@ class Backend(BaseBackend):
         query_set = compiled_query(query_function)
 
         return query_set
+
+    class CacheManager:
+        """Cache management utility"""
+        def __init__(self, max_size=1000):
+            self.max_size = max_size
+            self._cache = {}
+
+        def get(self, key):
+            return self._cache.get(key)
+
+        def set(self, key, value):
+            if len(self._cache) >= self.max_size:
+                self._cache.pop(next(iter(self._cache)))
+            self._cache[key] = value
+
+        def clear(self):
+            self._cache.clear()

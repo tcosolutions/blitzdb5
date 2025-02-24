@@ -23,8 +23,15 @@ import logging
 import traceback
 import uuid
 from collections import defaultdict
+import abc
+import copy
+from typing import Any, Dict, List, Optional, Union
 
 import pymongo
+from pymongo import MongoClient
+from pymongo.collection import Collection
+from pymongo.cursor import Cursor
+from pymongo.errors import DuplicateKeyError
 
 from blitzdb.backends.base import Backend as BaseBackend
 from blitzdb.backends.base import NotInTransaction
@@ -65,100 +72,158 @@ class DotEncoder:
 
 
 class Backend(BaseBackend):
-    """A MongoDB backend.
+    """
+    A MongoDB backend.
 
-    :param db: An instance of a `pymongo.database.Database
-     <http://api.mongodb.org/python/current/api/pymongo/database.html>`_ class
-
-    Example usage:
-
-    .. code-block:: python
-
-        from pymongo import connection
-        from blitzdb.backends.mongo import Backend as MongoBackend
-
-        c = connection()
-        my_db = c.test_db
-
-        #create a new BlitzDB backend using a MongoDB database
-        backend = MongoBackend(my_db)
+    :param connection: Connection string or MongoDB client instance
+    :param database: Name of the database
+    :param kwargs: Additional configuration options
     """
 
-    standard_encoders = BaseBackend.standard_encoders + [DotEncoder]
+    class Meta(BaseBackend.Meta):
+        pass
 
-    def __init__(self, db, autocommit=False, use_pk_based_refs=True, **kwargs):
-        super().__init__(**kwargs)
-        self.db = db
-        self._autocommit = autocommit
-        self._save_cache = defaultdict(lambda: {})
-        self._delete_cache = defaultdict(lambda: {})
-        self._update_cache = defaultdict(lambda: {})
-        self._use_pk_based_refs = use_pk_based_refs
-        self.in_transaction = False
+    def __init__(self, connection, database, **kwargs):
+        super(Backend, self).__init__(**kwargs)
+        
+        if isinstance(connection, str):
+            self.connection = MongoClient(connection)
+        else:
+            self.connection = connection
+            
+        self.database = database
+        self.db = self.connection[database]
+        self._enable_batch_operations = kwargs.get('enable_batch_operations', False)
+        self._batch_size = kwargs.get('batch_size', 1000)
+        self._enable_caching = kwargs.get('enable_caching', False)
+        
+        if self._enable_caching:
+            self._cache_manager = self.CacheManager()
 
     def begin(self):
-        if self.in_transaction:  # we're already in a transaction...
-            self.commit()
-        self.in_transaction = True
+        raise NotInTransaction("MongoDB does not support transactions")
 
-    def rollback(self, transaction=None):
-        if not self.in_transaction:
-            raise NotInTransaction("Not in a transaction!")
+    def commit(self):
+        raise NotInTransaction("MongoDB does not support transactions")
 
-        self._save_cache = defaultdict(lambda: {})
-        self._delete_cache = defaultdict(lambda: {})
-        self._update_cache = defaultdict(lambda: {})
+    def rollback(self):
+        raise NotInTransaction("MongoDB does not support transactions")
 
-        self.in_transaction = False
+    def create_store(self, store_key):
+        return self.db[store_key]
 
-    def commit(self, transaction=None):
+    def get_storage_key_for(self, obj):
+        if isinstance(obj, type):
+            return self.get_collection_for_cls(obj)
+        return self.get_collection_for_cls(obj.__class__)
+
+    def encode_keys(self, obj):
+        encoded = {}
+        if obj.pk:
+            encoded['_id'] = obj.pk
+        return encoded
+
+    def decode_keys(self, obj):
+        return {'pk': obj.get('_id')}
+
+    def encode_value(self, value):
+        if isinstance(value, Document):
+            return {'_type': 'object_reference',
+                    'collection': self.get_storage_key_for(value),
+                    '_id': value.pk}
+        return value
+
+    def decode_value(self, value):
+        if isinstance(value, dict) and '_type' in value \
+                and value['_type'] == 'object_reference':
+            cls = self.get_cls_for_collection(value['collection'])
+            return self.get(cls, {'pk': value['_id']})
+        return value
+
+    # Enhanced save method with batch support
+    def save_update(self, obj, store_key):
+        if self._enable_batch_operations and isinstance(obj, (list, tuple)):
+            return self._batch_save_objects(obj, store_key)
+            
+        store = self.get_store(store_key)
+        if not obj.pk:
+            obj.pk = uuid.uuid4().hex
+        
+        encoded_attrs = self.encode_document(obj)
+        encoded_attrs['_id'] = obj.pk
+        
         try:
-            for collection, cache in self._save_cache.items():
-                for pk, attributes in cache.items():
-                    try:
-                        self.db[collection].save(attributes)
-                    except:
-                        logger.error(
-                            "Error when saving the document with pk {} in collection {}".format(
-                                attributes["pk"], collection
-                            )
-                        )
-                        logger.error(
-                            "Attributes (excerpt):"
-                            + str(dict(attributes.items()[:100]))
-                        )
-                        raise
+            store.replace_one({'_id': obj.pk}, encoded_attrs, upsert=True)
+        except DuplicateKeyError:
+            raise obj.DuplicateKeyError(f"Duplicate key error for {obj}")
+            
+        return {'pk': obj.pk}
 
-            for collection, cache in self._delete_cache.items():
-                for pk in cache:
-                    self.db[collection].remove({"_id": pk})
+    def save_delete(self, obj, store_key):
+        store = self.get_store(store_key)
+        store.delete_one({'_id': obj.pk})
+        return {}
 
-            for collection, cache in self._update_cache.items():
-                for pk, attributes in cache.items():
-                    update_dict = {}
-                    for key in ("$set", "$unset"):
-                        if key in attributes and attributes[key]:
-                            update_dict[key] = attributes[key]
-                    if update_dict:
-                        self.db[collection].update({"_id": pk}, update_dict)
-        finally:
-            # regardless what happens in the 'commit' operation, we clear the cache
-            self._save_cache = defaultdict(lambda: {})
-            self._delete_cache = defaultdict(lambda: {})
-            self._update_cache = defaultdict(lambda: {})
+    def _batch_save_objects(self, objects, store_key):
+        """Batch save implementation"""
+        store = self.get_store(store_key)
+        results = []
+        
+        for i in range(0, len(objects), self._batch_size):
+            batch = objects[i:i + self._batch_size]
+            operations = []
+            
+            for obj in batch:
+                if not obj.pk:
+                    obj.pk = uuid.uuid4().hex
+                    
+                encoded_attrs = self.encode_document(obj)
+                encoded_attrs['_id'] = obj.pk
+                
+                operations.append(
+                    pymongo.ReplaceOne(
+                        {'_id': obj.pk},
+                        encoded_attrs,
+                        upsert=True
+                    )
+                )
+                results.append({'pk': obj.pk})
+                
+            try:
+                store.bulk_write(operations, ordered=False)
+            except BulkWriteError as bwe:
+                logger.warning(f"Some batch operations failed: {bwe.details}")
+                
+        return results
 
-            self.in_transaction = True
+    def _batch_delete_objects(self, objects, store_key):
+        """Batch delete implementation"""
+        store = self.get_store(store_key)
+        
+        for i in range(0, len(objects), self._batch_size):
+            batch = objects[i:i + self._batch_size]
+            operations = [
+                pymongo.DeleteOne({'_id': obj.pk})
+                for obj in batch
+            ]
+            store.bulk_write(operations, ordered=False)
 
-    @property
-    def autocommit(self):
-        return self._autocommit
+    class CacheManager:
+        """Cache management utility"""
+        def __init__(self, max_size=1000):
+            self.max_size = max_size
+            self._cache = {}
 
-    @autocommit.setter
-    def autocommit(self, value):
-        if value not in (True, False):
-            raise TypeError("Value must be boolean!")
+        def get(self, key):
+            return self._cache.get(key)
 
-        self._autocommit = value
+        def set(self, key, value):
+            if len(self._cache) >= self.max_size:
+                self._cache.pop(next(iter(self._cache)))
+            self._cache[key] = value
+
+        def clear(self):
+            self._cache.clear()
 
     def delete_by_primary_keys(self, cls, pks):
         collection = self.get_collection_for_cls(cls)
