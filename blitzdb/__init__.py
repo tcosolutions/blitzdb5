@@ -33,4 +33,4 @@ except ImportError:
     pass
 
 
-from .backends.sql.backend import SQLBackend
+from .backends.sql.backend import Backend
