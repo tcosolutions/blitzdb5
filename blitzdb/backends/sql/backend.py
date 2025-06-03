@@ -1076,7 +1076,7 @@ class Backend(BaseBackend):
             collection = cls_or_collection
             cls = self.get_cls_for_collection(collection)
 
-        result = self.filter(cls_or_collection,query,raw = raw,only = only,include = include)
+        result = self.filter(cls_or_collection,query)
         try:
             if len(result) > 1:
                 raise cls.MultipleDocumentsReturned
@@ -1086,7 +1086,7 @@ class Backend(BaseBackend):
             raise cls.DoesNotExist
 
 
-    def filter(self, cls_or_collection, query, raw = False,only = None,include = None):
+    def filter(self, cls_or_collection, query):
         """
         Filter objects from the database that correspond to a given set of properties.
 
